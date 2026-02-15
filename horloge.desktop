@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=MyToketa horloge
+Exec=/path/to/your/dist/__main__
+Icon=/path/to/your/icon.png
+Type=Application
+Terminal=false
