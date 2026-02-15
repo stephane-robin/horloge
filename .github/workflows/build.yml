@@ -1,18 +1,21 @@
-name: Build Executables
-on: [push] # Runs every time you push code
+name: Build and Release
+on:
+  push:
+    tags:
+      - 'v*' 
 
 jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest] # Add macos-latest if you want
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
@@ -21,24 +24,30 @@ jobs:
         python -m pip install --upgrade pip
         pip install pygame pyinstaller
 
-    - name: Build with PyInstaller (Windows)
+    - name: Build (Windows)
       if: matrix.os == 'windows-latest'
-      run: pyinstaller --noconsole --onefile --add-data "al3.png;." --add-data "reveil.mp3;." --add-data "bg.png;." __main__.py
+      run: |
+        pyinstaller --noconsole --onefile --name "horloge_myToketa" --add-data "al3.png;." --add-data "reveil.mp3;." --add-data "bg.png;." __main__.py
 
-    - name: Build with PyInstaller (Linux)
+    - name: Build (Linux)
       if: matrix.os == 'ubuntu-latest'
-      run: pyinstaller --noconsole --onefile --add-data "al3.png:." --add-data "reveil.mp3:." --add-data "bg.png:." __main__.py
+      run: |
+        pyinstaller --noconsole --onefile --name "horloge_myToketa" --add-data "al3.png:." --add-data "reveil.mp3:." --add-data "bg.png:." __main__.py
+        # Rename to make it clear it's the Linux version
+        mv dist/horloge_myToketa dist/horloge_myToketa_Linux
 
-    - name: Build with PyInstaller (macOS)
+    - name: Build (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        pyinstaller --noconsole --onefile --add-data "al3.png:." --add-data "reveil.mp3:." --add-data "bg.png:." __main__.py
-        # Mac creates a .app folder. We need to zip it to "upload" it properly.
-        cd dist
-        zip -r horloge-Mac.zip __main__.app/
+        pyinstaller --noconsole --onefile --name "horloge_myToketa" --add-data "al3.png:." --add-data "reveil.mp3:." --add-data "bg.png:." __main__.py
+        cd dist && zip -r horloge_myToketa_Mac.zip horloge_myToketa.app/
 
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
+    - name: Release Assets
+      uses: softprops/action-gh-release@v1
       with:
-        name: horloge-${{ matrix.os }}
-        path: dist/
+        files: |
+          dist/horloge_myToketa.exe
+          dist/horloge_myToketa_Linux
+          dist/horloge_myToketa_Mac.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
