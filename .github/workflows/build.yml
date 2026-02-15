@@ -29,6 +29,14 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: pyinstaller --noconsole --onefile --add-data "al3.png:." --add-data "reveil.mp3:." --add-data "bg.png:." __main__.py
 
+    - name: Build with PyInstaller (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        pyinstaller --noconsole --onefile --add-data "al3.png:." --add-data "reveil.mp3:." --add-data "bg.png:." __main__.py
+        # Mac creates a .app folder. We need to zip it to "upload" it properly.
+        cd dist
+        zip -r horloge-Mac.zip __main__.app/
+
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
